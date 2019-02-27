@@ -1,6 +1,8 @@
 from nameko.rpc import rpc
 from PIL import Image
 
+from core.utils import in_memory_image
+
 
 class ResizeService:
     name = 'resize_service'

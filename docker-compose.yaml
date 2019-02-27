@@ -1,0 +1,54 @@
+version: "3"
+services:
+  rabbit:
+    container_name: rabbitmq
+    image: rabbitmq:3.6-management
+    ports:
+        - "15672:15672"
+    restart: always
+
+  image:
+    build: .
+    image: nameko_service
+    command: nameko run --config=config.yml services.image
+    depends_on:
+      - rabbit
+    ports:
+        - "8000:8000"
+    links:
+        - "rabbit:rabbitmq"
+
+    restart: always
+
+  convert:
+    build: .
+    image: nameko_service
+    command: nameko run --config=config.yml services.convert
+    depends_on:
+      - rabbit
+    links:
+        - "rabbit:rabbitmq"
+
+    restart: always
+
+  resize:
+    build: .
+    image: nameko_service
+    command: nameko run --config=config.yml services.resize
+    depends_on:
+      - rabbit
+    links:
+        - "rabbit:rabbitmq"
+
+    restart: always
+
+  rotate:
+    build: .
+    image: nameko_service
+    command: nameko run --config=config.yml services.rotate
+    depends_on:
+      - rabbit
+    links:
+        - "rabbit:rabbitmq"
+
+    restart: always

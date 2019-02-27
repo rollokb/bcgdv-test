@@ -13,7 +13,7 @@ from nameko.rpc import rpc, RpcProxy
 
 from core.http import http, InvalidArgumentsError, jsonify
 from core.dependencies import S3Bucket
-from core.utils import compose, in_memory_image
+from core.utils import compose
 
 
 logger = logging.getLogger(__name__)
@@ -117,10 +117,6 @@ class ImageService:
             raise InvalidArgumentsError('No file')
 
         image_file = request.files['file']
-
-        if not image_file.mimetype.startswith('image'):
-            raise InvalidArgumentsError('Not an image')
-
 
         key = self._upload_file(image_file.stream, image_file.filename)
         image_file.close()

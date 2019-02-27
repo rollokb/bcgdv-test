@@ -1,3 +1,4 @@
 nameko
 pillow
 boto3
+requests
