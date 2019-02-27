@@ -1,85 +1,28 @@
 import logging
-import json
 import re
 import io
 import uuid
-
 import requests
 
-from contextlib import contextmanager
-from functools import partial, reduce
-from PIL import Image, ImageOps
-
-from nameko.rpc import rpc, RpcProxy
-from werkzeug.wrappers import Response
+from functools import partial
+from PIL import Image
 
 from botocore.errorfactory import ClientError
 
-from services.http import http, InvalidArgumentsError, jsonify
-from services.dependencies import S3Bucket
+from nameko.rpc import rpc, RpcProxy
+
+from core.http import http, InvalidArgumentsError, jsonify
+from core.dependencies import S3Bucket
+from core.utils import compose, in_memory_image
 
 
 logger = logging.getLogger(__name__)
 
 
-def compose(*funcs):
-    """
-    Utility function to pipeline functions
-    """
-    return lambda x: reduce(lambda f, g: g(f), list(funcs), x)
-
-
-@contextmanager
-def in_memory_image(data):
-    input = io.BytesIO(data)
-    output = io.BytesIO()
-
-    image = Image.open(input)
-
-    try:
-        yield image, output
-    finally:
-        output.seek(0)
-
-
-class ResizeService:
-    name = 'resize_service'
-
-    @rpc
-    def resize(self, dimensions, data):
-        dimensions = tuple(int(d) for d in dimensions.split('x'))
-
-        with in_memory_image(data) as (image, output):
-            resized_image = image.resize(dimensions, Image.ANTIALIAS)
-            resized_image.save(output, format=image.format)
-
-        return output.read()
-
-class RotateService:
-    name = 'rotate_service'
-
-    @rpc
-    def rotate(self, deg, data):
-        deg = float(deg)
-        with in_memory_image(data) as (image, output):
-            rotated_image = image.rotate(deg)
-            rotated_image.save(output, format=image.format)
-
-        return output.read()
-
-
-class ConversionService:
-    name = 'conversion_service'
-
-    @rpc
-    def convert(self, format, data):
-        with in_memory_image(data) as (image, output):
-            image.save(output, format=format)
-
-        return output.read()
-
-
 class ImageService:
+    """
+    Root service. Takes image files and pipelines them.
+    """
     name = 'image_service'
     """
     Name of service. Nameko uses the name of a service
