@@ -13,6 +13,8 @@ in these tests, but instead focused more on the 'at a stretch' items.
 
 # Setup.
 
+Set the AWS credentials in the docker-compose.yml and enjoy!
+
         docker-compose up
 
 This will have a server running on your localhost:8000

@@ -1,4 +1,10 @@
 version: "3"
+
+
+x-common-variables: &common-variables
+  AWS_ACCESS_KEY_ID: setme
+  AWS_ACCESS_SECRET_KEY: setme
+
 services:
   rabbit:
     container_name: rabbitmq
@@ -19,6 +25,8 @@ services:
         - "rabbit:rabbitmq"
 
     restart: always
+    environment: *common-variables
+
 
   convert:
     build: .
@@ -28,7 +36,7 @@ services:
       - rabbit
     links:
         - "rabbit:rabbitmq"
-
+    environment: *common-variables
     restart: always
 
   resize:
@@ -39,8 +47,8 @@ services:
       - rabbit
     links:
         - "rabbit:rabbitmq"
-
     restart: always
+    environment: *common-variables
 
   rotate:
     build: .
@@ -52,3 +60,4 @@ services:
         - "rabbit:rabbitmq"
 
     restart: always
+    environment: *common-variables
